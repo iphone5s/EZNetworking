@@ -18,8 +18,7 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     // Insert code here to initialize your application
-    EZNetworkConfig *config = [EZNetworkConfig new];
- 
+//    EZNetworkConfig *config = [EZNetworkConfig new];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {

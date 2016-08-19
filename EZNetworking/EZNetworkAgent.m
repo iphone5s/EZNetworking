@@ -9,10 +9,12 @@
 #import "EZNetworkAgent.h"
 #import "EZNetworkConfig.h"
 #import "AFNetworking.h"
+#import "PINCache.h"
+#import "CommonCrypto/CommonDigest.h"
 
 @interface EZRequest ()
 
--(void) setResponseWithString:(NSString *)responseString model:(id)responseModel;
+-(void) setResponseWithString:(NSString *)responseString model:(id)responseModel cache:(BOOL)isCache;
 
 @end
 
@@ -20,6 +22,8 @@
 {
     AFHTTPSessionManager *_manager;
     NSMutableDictionary *_requestsRecord;
+    
+    PINDiskCache *_cache;
 }
 
 + (EZNetworkAgent *)sharedInstance {
@@ -38,14 +42,74 @@
         _manager = [AFHTTPSessionManager manager];
         _manager.responseSerializer.acceptableContentTypes  = [NSSet setWithObjects:@"application/json", @"text/json", @"text/javascript",@"text/plain", nil];
         _requestsRecord = [NSMutableDictionary dictionary];
+        
+        _cache = [PINDiskCache sharedCache];
     }
     return self;
 }
 
+- (NSString *)md5String:(NSString *)strCode
+{
+    const char *string = strCode.UTF8String;
+    int length = (int)strlen(string);
+    unsigned char bytes[CC_MD5_DIGEST_LENGTH];
+    CC_MD5(string, length, bytes);
+    
+    NSMutableString *mutableString = @"".mutableCopy;
+    
+    for (int i = 0; i < CC_MD5_DIGEST_LENGTH; i++)
+    {
+        [mutableString appendFormat:@"%02x", bytes[i]];
+    }
+    
+    return mutableString;
+}
+
 -(void)addRequest:(EZRequest *)request{
     
-    EZRequestMethod requestMethod = [request requestMethod];
+    EZResponseMethod responseMethod = [request responseMethod];
     
+    switch (responseMethod)
+    {
+        case EZResponseMethodDefault:
+        {
+            NSURLSessionDataTask *task = [self sendNetworkRequest:request];
+            
+            [self addSessionDataTask:request task:task];
+        }
+            break;
+        case EZResponseMethodCache1:
+        {
+            NSString *strKey = [self md5String:request.strUrl];
+            id responseObject = [_cache objectForKey:strKey];
+            
+            if (responseObject)
+            {
+                [self handleCache:request responseObject:responseObject];
+            }
+            else
+            {
+                NSURLSessionDataTask *task = [self sendNetworkRequest:request];
+                [self addSessionDataTask:request task:task];
+            }
+
+            
+        }
+            break;
+        case EZResponseMethodCache2:
+        {
+            
+        }
+            break;
+        default:
+            break;
+    }
+    
+
+}
+
+-(NSDictionary *)getParameters:(EZRequest *)request
+{
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
     
     if ([[EZNetworkConfig sharedInstance].arugment requestUrlArgument])
@@ -58,18 +122,20 @@
         [parameters addEntriesFromDictionary:[request requestArgument]];
     }
     
-    NSURLSessionDataTask *task = [self sendNetworkRequest:requestMethod url:request.baseUrl parameters:parameters];
-    
-    [self addSessionDataTask:request task:task];
+    return parameters;
 }
 
-- (NSURLSessionDataTask *)sendNetworkRequest:(EZRequestMethod)requestMethod url:(NSString *)url parameters:(id)parameters
+- (NSURLSessionDataTask *)sendNetworkRequest:(EZRequest *)request
 {
+    EZRequestMethod requestMethod = [request requestMethod];
+    NSString *strUrl = request.baseUrl;
+    
+    NSDictionary *parameters = [self getParameters:request];
     
     switch (requestMethod) {
         case EZRequestMethodGet:
         {
-            return [_manager GET:url parameters:parameters progress:^(NSProgress * _Nonnull downloadProgress) {
+            return [_manager GET:strUrl parameters:parameters progress:^(NSProgress * _Nonnull downloadProgress) {
                 
             } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 [self handleResult:task responseObject:responseObject];
@@ -82,7 +148,7 @@
             break;
         case EZRequestMethodPost:
         {
-            return [_manager POST:url parameters:parameters progress:^(NSProgress * _Nonnull uploadProgress) {
+            return [_manager POST:strUrl parameters:parameters progress:^(NSProgress * _Nonnull uploadProgress) {
                 
             } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 [self handleResult:task responseObject:responseObject];
@@ -99,6 +165,19 @@
     
 }
 
+-(void)handleCache:(EZRequest *)request responseObject:(id)responseObject
+{
+    BOOL succeed = [self checkResult:request responseObject:responseObject];
+    
+    if (succeed)
+    {
+        id model = [request jsonModel:responseObject];
+        [request setResponseWithString:responseObject model:model cache:YES];
+    }
+    
+    [self callBack:request success:succeed];
+}
+
 -(void)handleResult:(NSURLSessionDataTask *)task responseObject:(id)responseObject
 {
     EZRequest *request = _requestsRecord[task.taskDescription];
@@ -110,7 +189,10 @@
         if (succeed)
         {
             id model = [request jsonModel:responseObject];
-            [request setResponseWithString:responseObject model:model];
+            [request setResponseWithString:responseObject model:model cache:NO];
+            
+            NSString *strKey = [self md5String:request.strUrl];
+            [_cache setObject:responseObject forKey:strKey];
         }
         else
         {

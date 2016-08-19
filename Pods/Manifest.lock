@@ -14,13 +14,16 @@ PODS:
   - AFNetworking/Serialization (3.1.0)
   - AFNetworking/UIKit (3.1.0):
     - AFNetworking/NSURLSession
+  - PINCache (2.3)
 
 DEPENDENCIES:
   - AFNetworking
+  - PINCache
 
 SPEC CHECKSUMS:
   AFNetworking: 5e0e199f73d8626b11e79750991f5d173d1f8b67
+  PINCache: ce36ed282031b92fc7733ffe831f474ff80fddc2
 
-PODFILE CHECKSUM: f39f1e598a40942d0ea230ca9cd4fc82184dcf6b
+PODFILE CHECKSUM: f09f0e93065b421ae12b903425909674350b0e20
 
 COCOAPODS: 1.0.1

@@ -25,6 +25,7 @@
     self = [super init];
     if (self) {
         self.requestMethod = EZRequestMethodGet;
+        self.responseMethod = EZResponseMethodDefault;
     }
     return self;
 }

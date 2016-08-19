@@ -18,6 +18,8 @@ typedef void(^EZRequestCompletionBlock)(__kindof EZRequest *request);
 
 @property(nonatomic,strong,readonly) NSString *strUrl;
 
+@property(nonatomic,assign,readonly)BOOL isCache;
+
 @property (nonatomic, strong, readonly) NSString *responseString;
 
 @property (nonatomic, strong, readonly) id responseModel;
@@ -27,6 +29,8 @@ typedef void(^EZRequestCompletionBlock)(__kindof EZRequest *request);
 - (NSDictionary *)requestArgument;
 
 - (EZRequestMethod)requestMethod;
+
+- (EZResponseMethod)responseMethod;
 
 //字典模型转换
 -(id)jsonModel:(NSDictionary *)dict;

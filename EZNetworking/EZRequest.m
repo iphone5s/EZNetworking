@@ -26,6 +26,10 @@
     return [EZNetworkConfig sharedInstance].requestMethod;
 }
 
+- (EZResponseMethod)responseMethod {
+    return [EZNetworkConfig sharedInstance].responseMethod;
+}
+
 -(id)jsonModel:(NSDictionary *)dict
 {
     return nil;
@@ -80,10 +84,15 @@
     return _responseString;
 }
 
--(void) setResponseWithString:(NSString *)responseString model:(id)responseModel
+-(void) setResponseWithString:(NSString *)responseString model:(id)responseModel cache:(BOOL)isCache
 {
     _responseString = responseString;
     _responseModel = responseModel;
+}
+
+-(void)dealloc
+{
+    NSLog(@"request 释放");
 }
 
 @end

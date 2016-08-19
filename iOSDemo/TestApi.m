@@ -21,4 +21,9 @@
     return dict;
 }
 
+- (EZResponseMethod)responseMethod
+{
+    return EZResponseMethodCache1;
+}
+
 @end
