@@ -23,7 +23,7 @@
 
 - (EZResponseMethod)responseMethod
 {
-    return EZResponseMethodCache1;
+    return EZResponseMethodDefault;
 }
 
 @end

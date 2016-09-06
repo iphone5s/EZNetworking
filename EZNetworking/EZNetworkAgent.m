@@ -141,7 +141,8 @@
                 [self handleResult:task responseObject:responseObject];
                 [self removeSessionDataTask:task];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSDictionary *result = @{@"code":@(error.code),@"msg":error.description};
+                NSString *msg = [error.userInfo objectForKey:@"NSLocalizedDescription"];
+                NSDictionary *result = @{@"code":@(error.code),@"msg":msg};
                 [self handleResult:task responseObject:result];
                 [self handleResult:task responseObject:nil];
                 [self removeSessionDataTask:task];
@@ -156,7 +157,8 @@
                 [self handleResult:task responseObject:responseObject];
                 [self removeSessionDataTask:task];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSDictionary *result = @{@"code":@(error.code),@"msg":error.description};
+                NSString *msg = [error.userInfo objectForKey:@"NSLocalizedDescription"];
+                NSDictionary *result = @{@"code":@(error.code),@"msg":msg};
                 [self handleResult:task responseObject:result];
                 [self removeSessionDataTask:task];
             }];
