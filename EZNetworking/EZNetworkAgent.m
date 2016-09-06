@@ -141,6 +141,8 @@
                 [self handleResult:task responseObject:responseObject];
                 [self removeSessionDataTask:task];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                NSDictionary *result = @{@"code":@(error.code),@"msg":error.description};
+                [self handleResult:task responseObject:result];
                 [self handleResult:task responseObject:nil];
                 [self removeSessionDataTask:task];
             }];
@@ -154,7 +156,8 @@
                 [self handleResult:task responseObject:responseObject];
                 [self removeSessionDataTask:task];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                [self handleResult:task responseObject:nil];
+                NSDictionary *result = @{@"code":@(error.code),@"msg":error.description};
+                [self handleResult:task responseObject:result];
                 [self removeSessionDataTask:task];
             }];
         }
